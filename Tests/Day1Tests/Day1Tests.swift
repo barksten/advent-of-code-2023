@@ -14,7 +14,7 @@ treb7uchet
   }
   
   func testInputfile() throws {
-    let input = loadInput()
+    let input = loadInput(from: Bundle.module)
     XCTAssertEqual(input.count, 21985)
     let result = solution(input)
     XCTAssertEqual(result, 54630)

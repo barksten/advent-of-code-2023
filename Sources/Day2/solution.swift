@@ -1,8 +1,7 @@
 
 import ArgumentParser
-import Foundation
+import Common
 import Parsing
-
 
 struct Game {
   let id: Int
@@ -21,7 +20,6 @@ struct Pickup {
 enum Color {
   case red, green, blue
 }
-
 
 let pickup = Parse(input: Substring.self, Pickup.init(count:color:)) {
   Int.parser()
@@ -76,27 +74,64 @@ let games = Many {
   "\n"
 }
 
-func validateGame(game: Game) -> Bool {
+struct Limit {
+  init(
+    redLimit: Int = 12,
+    greenLimit: Int = 13,
+    blueLimit: Int = 14
+  ) {
+    self.redLimit = redLimit
+    self.greenLimit = greenLimit
+    self.blueLimit = blueLimit
+  }
+  
+  let redLimit: Int
+  let greenLimit: Int
+  let blueLimit: Int
+}
+
+func validateGame(limit: Limit) -> (Game) -> Bool {
+  { validateGame(limit: limit, game: $0) }
+}
+
+func validateGame(limit: Limit, game: Game) -> Bool {
   for set in game.sets {
-    if set.redCount > 12 { return false }
-    if set.greenCount > 13 { return false }
-    if set.blueCount > 14 { return false }
+    if set.redCount > limit.redLimit { return false }
+    if set.greenCount > limit.greenLimit { return false }
+    if set.blueCount > limit.blueLimit { return false }
   }
   return true
 }
 
 func solution(_ input: String) -> Int {
   let games = try! games.parse(input)
-  let validGames = games.filter(validateGame(game:))
+  let validGames = games.filter(validateGame(limit: Limit()))
   return validGames.map(\.id).reduce(0, +)
 }
 
-func loadInput() -> String {
-  guard let path = Bundle.module.url(forResource: "input", withExtension: "txt") else {
-    fatalError("Missing file")
+func findLimits(_ games: [Game]) -> [Limit] {
+  games.map {
+    let maxRed: Int = $0.sets.reduce(0, { acc, new in
+      max(acc, new.redCount)
+    })
+    let maxGreen: Int = $0.sets.reduce(0, { acc, new in
+      max(acc, new.greenCount)
+    })
+    let maxBlue: Int = $0.sets.reduce(0, { acc, new in
+      max(acc, new.blueCount)
+    })
+    return Limit(redLimit: maxRed, greenLimit: maxGreen, blueLimit: maxBlue)
   }
-  let data: Data = try! Data(contentsOf: path)
-  return String(data: data, encoding: .utf8)!
+}
+
+func solutionBonus(_ input: String) -> Int {
+  let games = try! games.parse(input)
+  
+  return findLimits(games)
+    .map {
+      $0.redLimit * $0.greenLimit * $0.blueLimit
+    }
+    .reduce(0, +)
 }
 
 @main

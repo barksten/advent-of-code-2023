@@ -1,6 +1,6 @@
 
 import ArgumentParser
-import Foundation
+import Common
 
 enum numbers: String {
   case one = "one"
@@ -30,14 +30,6 @@ func solution(_ input: String) -> Int {
     .map(firstAndLastDigit(input:))
     .map(combine(first:last:))
     .reduce(0, +)
-}
-
-func loadInput() -> String {
-  guard let path = Bundle.module.url(forResource: "input", withExtension: "txt") else {
-    fatalError("Missing file")
-  }
-  let data: Data = try! Data(contentsOf: path)
-  return String(data: data, encoding: .utf8)!
 }
 
 @main
